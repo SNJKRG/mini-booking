@@ -19,7 +19,7 @@
         <env name="CACHE_STORE" value="array"/>
         <env name="APP_TIMEZONE" value="Europe/Istanbul"/>
         <env name="DB_DATABASE" value="mini_booking_test" force="true"/>
-        <env name="DB_URL" value=""/>
+        <env name="DB_URL" value="" force="true"/>
         <env name="SESSION_DRIVER" value="array"/>
     </php>
 </phpunit>

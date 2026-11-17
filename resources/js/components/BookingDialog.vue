@@ -14,6 +14,7 @@ const props = defineProps({
     bookingSlot: { type: Object, default: null },
     timezone: { type: String, default: null },
     refreshing: { type: Boolean, default: false },
+    refreshError: { type: String, default: null },
 });
 
 const emit = defineEmits(['close', 'booked', 'conflict', 'refresh']);
@@ -27,6 +28,7 @@ const outcomeUnknown = ref(false);
 
 const isOpen = computed(() => props.bookingSlot !== null);
 const isSlotAvailable = computed(() => props.bookingSlot?.status === 'available');
+const canSubmit = computed(() => !submitting.value && isSlotAvailable.value && !outcomeUnknown.value);
 const slotView = computed(() => {
     if (!props.bookingSlot) {
         return null;
@@ -41,6 +43,17 @@ const slotView = computed(() => {
 watch(() => props.bookingSlot?.id, (slotId, previousSlotId) => {
     if (slotId !== undefined && slotId !== previousSlotId) {
         resetForm();
+    }
+});
+
+/**
+ * Новый объект того же слота приходит только после успешной загрузки расписания.
+ * Тогда статус слота известен, и повтор после потерянного ответа снова разрешён.
+ */
+watch(() => props.bookingSlot, (slot, previousSlot) => {
+    if (outcomeUnknown.value && slot && previousSlot && slot !== previousSlot && slot.id === previousSlot.id) {
+        outcomeUnknown.value = false;
+        formError.value = null;
     }
 });
 
@@ -70,7 +83,7 @@ function applyValidationErrors(error) {
 }
 
 async function submit() {
-    if (submitting.value || !isSlotAvailable.value) {
+    if (!canSubmit.value) {
         return;
     }
 
@@ -98,7 +111,7 @@ async function submit() {
             emit('conflict', error.message);
         } else if (error.network) {
             outcomeUnknown.value = true;
-            formError.value = 'Ответ сервера не получен, бронирование могло создаться. Обновите расписание перед повтором.';
+            formError.value = 'Ответ сервера не получен, бронирование могло создаться. Обновите расписание: повтор станет доступен после проверки.';
         } else {
             formError.value = error.message;
         }
@@ -166,6 +179,9 @@ async function submit() {
             </div>
 
             <Message v-if="formError" severity="error" class="form-message">{{ formError }}</Message>
+            <Message v-if="outcomeUnknown && refreshError && !refreshing" severity="error" class="form-message">
+                {{ refreshError }}
+            </Message>
 
             <div class="dialog-actions">
                 <Button
@@ -189,7 +205,7 @@ async function submit() {
                     type="submit"
                     label="Забронировать"
                     :loading="submitting"
-                    :disabled="submitting || !isSlotAvailable"
+                    :disabled="!canSubmit"
                 />
             </div>
         </form>

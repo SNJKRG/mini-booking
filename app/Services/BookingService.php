@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 class BookingService
 {
     private const UNIQUE_VIOLATION = '23505';
+
     private const ACTIVE_BOOKING_INDEX = 'bookings_one_active_per_slot';
 
     /**

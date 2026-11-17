@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -14,15 +15,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $slot_id
  * @property string $customer_name
  * @property string $customer_email
- * @property \Carbon\CarbonImmutable|null $cancelled_at
+ * @property CarbonImmutable|null $cancelled_at
  */
 class Booking extends Model
 {
-    /**
-     * Даты передаются в БД с явным смещением, см. Slot::DATE_FORMAT.
-     */
-    protected $dateFormat = Slot::DATE_FORMAT;
-
     protected $fillable = ['slot_id', 'customer_name', 'customer_email'];
 
     protected function casts(): array

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Models\Slot;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -16,13 +15,15 @@ use Illuminate\Support\Facades\DB;
 class ScheduleSeeder extends Seeder
 {
     public const DAYS = 7;
+
     public const FIRST_HOUR = 9;
+
     public const LAST_HOUR = 18;
 
     public function run(): void
     {
         $today = CarbonImmutable::now(config('app.timezone'))->startOfDay();
-        $createdAt = CarbonImmutable::now()->format(Slot::DATE_FORMAT);
+        $createdAt = CarbonImmutable::now();
         $rows = [];
 
         for ($day = 0; $day < self::DAYS; $day++) {
@@ -30,8 +31,8 @@ class ScheduleSeeder extends Seeder
                 $startsAt = $today->addDays($day)->setTime($hour, 0);
 
                 $rows[] = [
-                    'starts_at' => $startsAt->format(Slot::DATE_FORMAT),
-                    'ends_at' => $startsAt->addHour()->format(Slot::DATE_FORMAT),
+                    'starts_at' => $startsAt,
+                    'ends_at' => $startsAt->addHour(),
                     'created_at' => $createdAt,
                     'updated_at' => $createdAt,
                 ];

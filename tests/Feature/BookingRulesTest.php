@@ -8,6 +8,7 @@ use App\Models\Booking;
 use App\Models\Slot;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 /**
@@ -73,6 +74,20 @@ class BookingRulesTest extends TestCase
         $this->assertTrue($cancelledAt->equalTo(Booking::query()->findOrFail($oldId)->cancelled_at));
         $this->getJson('/api/slots')->assertJsonPath('data.0.status', 'booked')->assertJsonPath('data.0.active_booking_id', $newId);
         $this->deleteJson('/api/bookings/999999')->assertNotFound();
+    }
+
+    public function test_cancellation_time_is_stored_as_the_real_moment(): void
+    {
+        $slot = $this->createSlotStartingAt($this->now->addDay());
+        $bookingId = $this->postJson('/api/bookings', $this->payload($slot))->assertCreated()->json('id');
+
+        $this->deleteJson("/api/bookings/{$bookingId}")->assertNoContent();
+
+        $this->assertSame(
+            '2026-03-10 09:00:00',
+            DB::scalar("select to_char(cancelled_at at time zone 'UTC', 'YYYY-MM-DD HH24:MI:SS') from bookings where id = ?", [$bookingId]),
+        );
+        $this->assertTrue($this->now->equalTo(Booking::query()->findOrFail($bookingId)->cancelled_at));
     }
 
     public function test_slot_list_has_statuses_utc_times_and_no_personal_data(): void

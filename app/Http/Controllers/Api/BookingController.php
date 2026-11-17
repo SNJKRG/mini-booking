@@ -12,9 +12,7 @@ use Illuminate\Http\Response;
 
 class BookingController
 {
-    public function __construct(private readonly BookingService $bookingService)
-    {
-    }
+    public function __construct(private readonly BookingService $bookingService) {}
 
     /**
      * Создаёт бронь 201 с её ID, 422 при неверных данных, 409 если слот недоступен

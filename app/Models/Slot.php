@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\SlotStatus;
+use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -14,19 +15,12 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * Часовой слот единственной переговорной.
  *
  * @property int $id
- * @property \Carbon\CarbonImmutable $starts_at
- * @property \Carbon\CarbonImmutable $ends_at
+ * @property CarbonImmutable $starts_at
+ * @property CarbonImmutable $ends_at
  * @property-read Booking|null $activeBooking
  */
 class Slot extends Model
 {
-    /**
-     * Даты передаются в БД с явным смещением: сессия БД работает в UTC, и локальное «09:00» без смещения сохранилось бы как 09:00 UTC.
-     */
-    public const DATE_FORMAT = 'Y-m-d H:i:sP';
-
-    protected $dateFormat = self::DATE_FORMAT;
-
     protected $fillable = ['starts_at', 'ends_at'];
 
     protected function casts(): array

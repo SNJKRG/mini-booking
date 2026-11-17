@@ -153,10 +153,21 @@ function onBooked(bookingId) {
     refreshAfterChange(`Бронирование №${bookingId} создано.`);
 }
 
+/**
+ * Показывает причину сразу, а итог обновления расписания дописывает только после ответа GET.
+ */
+async function noticeAndRefresh(severity, reason) {
+    notice.value = { severity, text: reason };
+    const refreshed = await loadSlots();
+    notice.value = {
+        severity,
+        text: `${reason} ${refreshed ? 'Расписание обновлено.' : 'Расписание обновить не удалось, нажмите «Обновить».'}`,
+    };
+}
+
 function onConflict(message) {
     dialogSlotId.value = null;
-    notice.value = { severity: 'error', text: `${message} Расписание обновлено.` };
-    loadSlots();
+    noticeAndRefresh('error', message);
 }
 
 function confirmCancel(slot) {
@@ -184,8 +195,7 @@ async function cancel(bookingId) {
         await cancelBooking(bookingId);
     } catch (error) {
         if (error.status === 404) {
-            notice.value = { severity: 'warn', text: `Бронирование №${bookingId} не найдено. Расписание обновлено.` };
-            loadSlots();
+            noticeAndRefresh('warn', `Бронирование №${bookingId} не найдено.`);
         } else {
             cancelError.value = { bookingId, text: `Не удалось отменить бронирование №${bookingId}. ${error.message}` };
         }
@@ -365,6 +375,7 @@ onBeforeUnmount(() => document.removeEventListener('visibilitychange', onVisibil
         :booking-slot="dialogSlot"
         :timezone="timezone"
         :refreshing="listLoading"
+        :refresh-error="listError"
         @close="dialogSlotId = null"
         @booked="onBooked"
         @conflict="onConflict"
